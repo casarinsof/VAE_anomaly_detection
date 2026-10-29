@@ -9,12 +9,12 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from ignite.contrib.handlers.tqdm_logger import ProgressBar
 
-from VAE import VAEAnomaly
-from dataset import load_dataset
+from vae_anomaly.vae import VAEAnomaly
+from vae_anomaly.dataset import load_dataset
 
 
 def get_folder_run() -> Path:
-    run_path: Path = Path(__file__).parent / 'run'
+    run_path: Path = Path(__file__).parent.parent / 'run'
     if not run_path.exists(): run_path.mkdir()
     i = 0
     while (run_path / str(i)).exists():
@@ -95,7 +95,7 @@ def get_args() -> argparse.Namespace:
 
 
 def store_codebase_into_experiment(experiment_folder):
-    with open(Path(__file__).parent / 'VAE.py') as f:
+    with open(Path(__file__).parent.parent / 'vae_anomaly' / 'vae.py') as f:
         code = f.read()
     with open(experiment_folder / 'vae.py', 'w') as f:
         f.write(code)
