@@ -1,32 +1,55 @@
 # Variational autoencoder for anomaly detection
 
-This repo contains my personal implementation of Variational autoencoder
- in tensorflow for anomaly detection, that follow
- [Variational Autoencoder based Anomaly Detection using Reconstruction Probability by Jinwon An, Sungzoon Cho](https://www.semanticscholar.org/paper/Variational-Autoencoder-based-Anomaly-Detection-An-Cho/061146b1d7938d7a8dae70e3531a00fceb3c78e8)
- <br>
- In order to make work the variational autoencoder for anomaly detection i've to change the last layer of the decoder
- from a simple fully connected layer to two layers that estimate mean and variance
- of x~ ( _p(x|z)_ )
-<br>
+This repository is a personal fork of [Michedev/VAE_anomaly_detection](https://github.com/Michedev/VAE_anomaly_detection), the work of the original author, Michedev. It contains a variational autoencoder (VAE) for anomaly detection following
+[Variational Autoencoder based Anomaly Detection using Reconstruction Probability (An & Cho)](https://www.semanticscholar.org/paper/Variational-Autoencoder-based-Anomaly-Detection-An-Cho/061146b1d7938d7a8dae70e3531a00fceb3c78e8).
+The decoder's last layer is replaced by two layers that estimate the mean and variance of p(x|z), so anomalies can be scored by reconstruction probability.
 
-## How To Train a Model
+## What this fork changes
 
-- Define your dataset into dataset.py and put in output into the function _get_dataset_
-- Eventually change encoder and decoder inside _VAE.py_ to fits your data layout
-- Run in a terminal _python train.py_ and specify required at least _--input-size_ (pass -h to see all optional parameters)
-- Trained model, parameters and Tensorboard log goes into the folder _run/{id}_ where _{id}_ is an integer from 0 to +inf
-- After the model training run _tensorboard --logdir=run_ to check all the training results
+Compared with `upstream/master`, this fork contains no original code changes: it is a snapshot of an earlier upstream state, kept for personal experiments. The only modifications are the layout and housekeeping done in this branch (package + `scripts/`, `.gitignore`, README). Upstream has since moved on (e.g. packaging, tests, CI), which this fork does not include.
 
-## How to make predictions:
-Once the model is trained (suppose for simplicity that it is under _run/0/_ ) just load and predict with this code snippet:
+## Structure
+
+```
+vae_anomaly/
+  vae.py         PyTorch model (VAEAnomaly)
+  vae_tf1.py     original TensorFlow 1 implementation
+  dataset.py     load_dataset(): replace with your own dataset
+scripts/
+  train.py       training entry point (pytorch-ignite)
+requirements.txt
+```
+
+## Installation
+
+```
+pip install -r requirements.txt
+```
+
+`vae_tf1.py` additionally needs `tensorflow` (1.x), `numpy` and `scipy`.
+
+## Training
+
+Edit `load_dataset()` in `vae_anomaly/dataset.py` (it returns random data by default), adjust the encoder/decoder in `vae_anomaly/vae.py` if needed, then from the repository root:
+
+```
+python -m scripts.train --input-size <N>   # add -h for all options
+tensorboard --logdir=run
+```
+
+The model, parameters and TensorBoard logs are stored in `run/<id>/`.
+
+## Predicting
+
 ```python
 import torch
+from vae_anomaly.vae import VAEAnomaly
 
-#load X_test
-model = VAEAnomaly(input_size=50, latent_size=32)
-# could load input_size and latent_size also 
-# from run/0/train_config.yaml
+model = VAEAnomaly(input_size=50, latent_size=32)  # or read them from run/0/train_config.yaml
 model.load_state_dict(torch.load('run/0/model.pth'))
-# load saved parameters from a run
 outliers = model.is_anomaly(X_test)
 ```
+
+## Credits
+
+Original implementation by [Michedev](https://github.com/Michedev/VAE_anomaly_detection). Refer to the upstream repository for its license.
